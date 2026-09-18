@@ -4,14 +4,21 @@ import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { runtimeConfig } from '../config/runtime'
 import { useAuthStore } from '../stores/auth'
+import { useRouter } from 'vue-router'
 
 const route = useRoute()
 const auth = useAuthStore()
+const router = useRouter()
 const environmentLabel = computed(() => ({
   development: '开发环境',
   test: '测试环境',
   production: '生产环境',
 })[runtimeConfig.environment])
+
+async function logout(): Promise<void> {
+  await auth.logout()
+  await router.replace('/login')
+}
 </script>
 
 <template>
@@ -37,6 +44,7 @@ const environmentLabel = computed(() => ({
           <el-button text circle aria-label="通知"><el-icon><Bell /></el-icon></el-button>
           <el-divider direction="vertical" />
           <el-icon><User /></el-icon><span>{{ auth.identity?.displayName ?? '未登录' }}</span>
+          <el-button text type="primary" @click="logout">退出</el-button>
         </div>
       </el-header>
       <el-main class="content"><RouterView /></el-main>

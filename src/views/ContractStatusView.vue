@@ -1,6 +1,6 @@
 <script setup lang="ts">
 const rows = [
-  { capability: '管理员登录与会话', endpoint: '/admin/v1/auth/*', status: '待后端实现' },
+  { capability: '管理员登录与会话', endpoint: '/admin/v1/auth/*', status: '已接入' },
   { capability: '玩家检索与详情', endpoint: '/admin/v1/players/*', status: '待后端实现' },
   { capability: '云存档摘要与回滚', endpoint: '/admin/v1/players/:id/saves', status: '待后端实现' },
   { capability: '封禁与解封', endpoint: '/admin/v1/players/:id/ban', status: '待后端实现' },
@@ -18,7 +18,9 @@ const rows = [
           <template #default="scope"><code>{{ scope.row.endpoint }}</code></template>
         </el-table-column>
         <el-table-column prop="status" label="状态" width="140">
-          <template #default="scope"><el-tag type="warning">{{ scope.row.status }}</el-tag></template>
+          <template #default="scope">
+            <el-tag :type="scope.row.status === '已接入' ? 'success' : 'warning'">{{ scope.row.status }}</el-tag>
+          </template>
         </el-table-column>
       </el-table>
     </el-card>

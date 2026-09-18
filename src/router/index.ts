@@ -44,11 +44,18 @@ const router = createRouter({
   ],
 })
 
-router.beforeEach((to) => {
+router.beforeEach(async (to) => {
   document.title = `${to.meta.title} - 喵的旅行日记管理后台`
-  if (to.meta.public) return true
-
   const auth = useAuthStore(pinia)
+  if (!auth.sessionChecked) {
+    try {
+      await auth.restoreSession()
+    } catch {
+      if (!to.meta.public) return { name: 'login', query: { redirect: to.fullPath, unavailable: '1' } }
+    }
+  }
+  if (to.name === 'login' && auth.isAuthenticated) return { name: 'dashboard' }
+  if (to.meta.public) return true
   if (!auth.isAuthenticated) {
     return { name: 'login', query: { redirect: to.fullPath } }
   }

@@ -1,9 +1,33 @@
 <script setup lang="ts">
 import { Lock, User } from '@element-plus/icons-vue'
-import { reactive } from 'vue'
-import { runtimeConfig } from '../config/runtime'
+import { computed, reactive, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { ApiRequestError } from '../api/types'
+import { useAuthStore } from '../stores/auth'
 
 const form = reactive({ account: '', password: '' })
+const loading = ref(false)
+const errorMessage = ref('')
+const auth = useAuthStore()
+const route = useRoute()
+const router = useRouter()
+const backendUnavailable = computed(() => route.query.unavailable === '1')
+
+async function submit(): Promise<void> {
+  errorMessage.value = ''
+  loading.value = true
+  try {
+    await auth.login(form.account, form.password)
+    const redirect = typeof route.query.redirect === 'string' && route.query.redirect.startsWith('/')
+      ? route.query.redirect
+      : '/'
+    await router.replace(redirect)
+  } catch (error) {
+    errorMessage.value = error instanceof ApiRequestError ? error.message : '管理服务暂时不可用，请稍后重试'
+  } finally {
+    loading.value = false
+  }
+}
 </script>
 
 <template>
@@ -19,21 +43,30 @@ const form = reactive({ account: '', password: '' })
       <el-card shadow="never" class="login-card">
         <template #header><div><h2>管理员登录</h2><p>仅限已授权的内部账号</p></div></template>
         <el-alert
-          v-if="!runtimeConfig.apiBaseUrl"
-          title="管理 API 尚未配置"
-          description="后端管理员认证接口冻结后才会开放真实登录，本页面不会使用假账号绕过鉴权。"
-          type="warning"
+          v-if="backendUnavailable || errorMessage"
+          :title="errorMessage || '管理服务暂时不可用'"
+          description="请确认 miao-travel-server 已启用管理员认证并可从当前环境访问。"
+          type="error"
           :closable="false"
           show-icon
         />
-        <el-form :model="form" label-position="top" class="login-form">
+        <el-form :model="form" label-position="top" class="login-form" @submit.prevent="submit">
           <el-form-item label="管理员账号">
             <el-input v-model="form.account" placeholder="请输入管理员账号" autocomplete="username" :prefix-icon="User" />
           </el-form-item>
           <el-form-item label="密码">
             <el-input v-model="form.password" type="password" placeholder="请输入密码" autocomplete="current-password" show-password :prefix-icon="Lock" />
           </el-form-item>
-          <el-button type="primary" size="large" class="submit" disabled>等待管理 API</el-button>
+          <el-button
+            type="primary"
+            size="large"
+            class="submit"
+            native-type="submit"
+            :loading="loading"
+            :disabled="!form.account.trim() || !form.password"
+          >
+            登录
+          </el-button>
         </el-form>
         <p class="security-note">登录凭据不会保存到浏览器本地存储。</p>
       </el-card>

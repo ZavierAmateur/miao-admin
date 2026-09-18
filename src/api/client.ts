@@ -10,10 +10,6 @@ function isApiFailure(value: unknown): value is ApiFailure {
 }
 
 export async function apiRequest<T>(path: `/admin/v1/${string}`, options: RequestOptions = {}): Promise<T> {
-  if (!runtimeConfig.apiBaseUrl) {
-    throw new ApiRequestError(0, 'ADMIN_API_NOT_CONFIGURED', '管理 API 地址尚未配置')
-  }
-
   const headers = new Headers(options.headers)
   headers.set('Accept', 'application/json')
   headers.set('X-Request-Id', crypto.randomUUID())
