@@ -27,6 +27,24 @@ const router = createRouter({
           component: () => import('../views/ContractStatusView.vue'),
           meta: { title: '接口状态' },
         },
+        {
+          path: 'players',
+          name: 'players',
+          component: () => import('../views/PlayersView.vue'),
+          meta: { title: '玩家管理', permission: 'player:read' },
+        },
+        {
+          path: 'players/:playerId',
+          name: 'player-detail',
+          component: () => import('../views/PlayerDetailView.vue'),
+          meta: { title: '玩家详情', permission: 'player:read' },
+        },
+        {
+          path: 'api-docs',
+          name: 'api-docs',
+          component: () => import('../views/ApiDocsView.vue'),
+          meta: { title: '请求接口文档' },
+        },
       ],
     },
     {

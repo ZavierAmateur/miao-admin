@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Bell, DataAnalysis, Link, User } from '@element-plus/icons-vue'
+import { Bell, DataAnalysis, Document, Link, User, UserFilled } from '@element-plus/icons-vue'
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { runtimeConfig } from '../config/runtime'
@@ -30,7 +30,9 @@ async function logout(): Promise<void> {
       </div>
       <el-menu router :default-active="route.path" class="side-menu">
         <el-menu-item index="/"><el-icon><DataAnalysis /></el-icon><span>仪表盘</span></el-menu-item>
+        <el-menu-item index="/players"><el-icon><UserFilled /></el-icon><span>玩家管理</span></el-menu-item>
         <el-menu-item index="/contract-status"><el-icon><Link /></el-icon><span>接口状态</span></el-menu-item>
+        <el-menu-item index="/api-docs"><el-icon><Document /></el-icon><span>接口文档</span></el-menu-item>
       </el-menu>
       <div class="sidebar-foot">V1 · Internal</div>
     </el-aside>

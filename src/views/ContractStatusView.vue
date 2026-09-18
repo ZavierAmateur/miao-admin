@@ -1,7 +1,7 @@
 <script setup lang="ts">
 const rows = [
   { capability: '管理员登录与会话', endpoint: '/admin/v1/auth/*', status: '已接入' },
-  { capability: '玩家检索与详情', endpoint: '/admin/v1/players/*', status: '待后端实现' },
+  { capability: '玩家检索与详情', endpoint: '/admin/v1/players/*', status: '已接入' },
   { capability: '云存档摘要与回滚', endpoint: '/admin/v1/players/:id/saves', status: '待后端实现' },
   { capability: '封禁与解封', endpoint: '/admin/v1/players/:id/ban', status: '待后端实现' },
   { capability: '管理审计', endpoint: '/admin/v1/audit-logs', status: '待后端实现' },
