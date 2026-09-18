@@ -22,6 +22,12 @@ export interface PlayerListItem {
 
 export interface PlayerDetail extends PlayerListItem {
   readonly appId: string
+  readonly ban: {
+    readonly reason: string
+    readonly expiresAt: number
+    readonly bannedAt: number
+    readonly permanent: boolean
+  } | null
   readonly profile: {
     readonly nickName: string
     readonly avatarUrl: string
@@ -51,4 +57,46 @@ export function listPlayers(query: PlayerQuery = {}): Promise<{
 
 export function getPlayer(playerId: string): Promise<PlayerDetail> {
   return apiRequest(`/admin/v1/players/${encodeURIComponent(playerId)}`)
+}
+
+export interface SaveVersionDetail extends SaveSummary {
+  readonly hash: string
+  readonly user: Readonly<Record<string, unknown>>
+}
+
+export interface SaveDiagnostics {
+  readonly current: SaveVersionDetail
+  readonly previous: SaveVersionDetail | null
+  readonly changes: readonly {
+    readonly field: string
+    readonly previous: unknown
+    readonly current: unknown
+  }[]
+}
+
+export function getSaveDiagnostics(playerId: string): Promise<SaveDiagnostics> {
+  return apiRequest(`/admin/v1/players/${encodeURIComponent(playerId)}/save`)
+}
+
+export function rollbackSave(playerId: string, expectedRevision: number, reason: string): Promise<{
+  readonly sourceRevision: number
+  readonly revision: number
+  readonly serverSavedAt: number
+}> {
+  return apiRequest(`/admin/v1/players/${encodeURIComponent(playerId)}/save-rollback`, {
+    method: 'POST', body: { expectedRevision, reason },
+  })
+}
+
+export function banPlayer(playerId: string, input: {
+  readonly type: 'temporary' | 'permanent'
+  readonly expiresAt?: number
+  readonly reason: string
+  readonly note?: string
+}): Promise<{ readonly status: PlayerStatus; readonly reason: string; readonly expiresAt: number; readonly permanent: boolean }> {
+  return apiRequest(`/admin/v1/players/${encodeURIComponent(playerId)}/ban`, { method: 'POST', body: input })
+}
+
+export function unbanPlayer(playerId: string, reason: string): Promise<{ readonly status: PlayerStatus }> {
+  return apiRequest(`/admin/v1/players/${encodeURIComponent(playerId)}/unban`, { method: 'POST', body: { reason } })
 }

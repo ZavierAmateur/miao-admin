@@ -40,6 +40,12 @@ const router = createRouter({
           meta: { title: '玩家详情', permission: 'player:read' },
         },
         {
+          path: 'players/:playerId/save',
+          name: 'player-save',
+          component: () => import('../views/SaveDiagnosticsView.vue'),
+          meta: { title: '云存档诊断', permission: 'save:read' },
+        },
+        {
           path: 'api-docs',
           name: 'api-docs',
           component: () => import('../views/ApiDocsView.vue'),

@@ -9,6 +9,12 @@ const groups = [
     ['GET', '/admin/v1/players', 'player:read', '精确 ID、平台、状态筛选及游标分页'],
     ['GET', '/admin/v1/players/:playerId', 'player:read', '基础信息、资料与云存档摘要'],
   ] },
+  { title: '存档诊断与封禁', rows: [
+    ['GET', '/admin/v1/players/:playerId/save', 'save:read', '读取当前/上一版摘要及 user 字段差异'],
+    ['POST', '/admin/v1/players/:playerId/save-rollback', 'save:rollback', '按 expectedRevision 原子回滚并生成新 revision'],
+    ['POST', '/admin/v1/players/:playerId/ban', 'player:ban', '临时或永久封禁；永久封禁仅超管'],
+    ['POST', '/admin/v1/players/:playerId/unban', 'player:ban', '填写原因后解除封禁'],
+  ] },
 ]
 </script>
 
@@ -33,6 +39,15 @@ const groups = [
         <el-descriptions-item label="status"><code>active | banned</code></el-descriptions-item>
         <el-descriptions-item label="cursor">服务端返回的不透明分页游标</el-descriptions-item>
         <el-descriptions-item label="limit">1～50，默认 20</el-descriptions-item>
+      </el-descriptions>
+    </el-card>
+    <el-card shadow="never" class="docs-card">
+      <template #header><strong>关键写请求</strong></template>
+      <el-descriptions :column="1" border>
+        <el-descriptions-item label="存档回滚"><code>{ expectedRevision: number, reason: string }</code></el-descriptions-item>
+        <el-descriptions-item label="临时封禁"><code>{ type: 'temporary', expiresAt: number, reason: string, note?: string }</code></el-descriptions-item>
+        <el-descriptions-item label="永久封禁"><code>{ type: 'permanent', reason: string, note?: string }</code></el-descriptions-item>
+        <el-descriptions-item label="解除封禁"><code>{ reason: string }</code></el-descriptions-item>
       </el-descriptions>
     </el-card>
   </section>
