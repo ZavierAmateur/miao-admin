@@ -1,0 +1,15 @@
+:root {
+  color: #1f2937;
+  background: #f4f7fb;
+  font-family: Inter, "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+* { box-sizing: border-box; }
+html, body, #app { min-width: 1180px; min-height: 100%; margin: 0; }
+body { min-height: 100vh; }
+button, input { font: inherit; }
+.page-heading { margin-bottom: 24px; }
+.page-heading h1 { margin: 0 0 8px; color: #172033; font-size: 26px; font-weight: 700; }
+.page-heading p { margin: 0; color: #6b7280; font-size: 14px; }
