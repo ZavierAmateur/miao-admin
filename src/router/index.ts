@@ -23,13 +23,13 @@ const router = createRouter({
           path: 'players',
           name: 'players',
           component: () => import('../views/PlayersView.vue'),
-          meta: { title: '玩家管理', permission: 'player:read' },
+          meta: { title: '用户管理', permission: 'player:read' },
         },
         {
           path: 'players/:playerId',
           name: 'player-detail',
           component: () => import('../views/PlayerDetailView.vue'),
-          meta: { title: '玩家详情', permission: 'player:read' },
+          meta: { title: '用户详情', permission: 'player:read' },
         },
         {
           path: 'players/:playerId/save',

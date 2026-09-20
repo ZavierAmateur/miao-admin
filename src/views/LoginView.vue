@@ -35,7 +35,7 @@ async function submit(): Promise<void> {
     <section class="intro">
       <div class="eyebrow">MIAO TRAVEL · INTERNAL</div>
       <h1>让每一次运营操作<br />都有边界，也有记录。</h1>
-      <p>玩家查询、云存档诊断与脱敏错误日志按权限开放，高风险操作均由后端鉴权。</p>
+      <p>用户查询、云存档诊断与脱敏错误日志按权限开放，高风险操作均由后端鉴权。</p>
       <div class="guard-list"><span>HttpOnly 会话</span><span>RBAC 权限</span><span>全链路审计</span></div>
     </section>
 

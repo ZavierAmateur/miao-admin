@@ -60,7 +60,7 @@ onMounted(load)
 
 <template>
   <section v-loading="loading">
-    <el-button text :icon="ArrowLeft" @click="router.push(`/players/${playerId}`)">返回玩家详情</el-button>
+    <el-button text :icon="ArrowLeft" @click="router.push(`/players/${playerId}`)">返回用户详情</el-button>
     <header class="page-heading detail-heading">
       <div><h1>云存档诊断</h1><p><code>{{ playerId }}</code></p></div>
       <el-button v-if="canRollback" type="danger" :icon="RefreshLeft" :disabled="!data?.previous" @click="rollbackVisible = true">回滚上一版</el-button>
@@ -90,7 +90,7 @@ onMounted(load)
     </template>
 
     <el-dialog v-model="rollbackVisible" title="确认回滚云存档" width="520px">
-      <el-alert title="回滚会生成新的 revision，不会降低版本号；玩家下次同步将读取回滚后的内容。" type="warning" :closable="false" show-icon />
+      <el-alert title="回滚会生成新的 revision，不会降低版本号；用户下次同步将读取回滚后的内容。" type="warning" :closable="false" show-icon />
       <el-form label-position="top" class="dialog-form">
         <el-form-item label="操作原因" required><el-input v-model="rollbackReason" type="textarea" :rows="3" maxlength="200" show-word-limit placeholder="请填写可审计的回滚原因" /></el-form-item>
       </el-form>

@@ -5,7 +5,7 @@ const groups = [
     ['GET', '/admin/v1/auth/me', '已登录', '读取当前管理员身份与权限'],
     ['POST', '/admin/v1/auth/logout', '已登录', '撤销当前会话'],
   ] },
-  { title: '玩家查询', rows: [
+  { title: '用户查询', rows: [
     ['GET', '/admin/v1/players', 'player:read', '精确 ID、平台、状态筛选及游标分页'],
     ['GET', '/admin/v1/players/:playerId', 'player:read', '基础信息、资料与云存档摘要'],
   ] },
@@ -32,9 +32,9 @@ const groups = [
       </el-table>
     </el-card>
     <el-card shadow="never" class="docs-card">
-      <template #header><strong>玩家列表查询参数</strong></template>
+      <template #header><strong>用户列表查询参数</strong></template>
       <el-descriptions :column="2" border>
-        <el-descriptions-item label="playerId">完整玩家 ID，精确匹配</el-descriptions-item>
+        <el-descriptions-item label="playerId">完整用户 ID，精确匹配</el-descriptions-item>
         <el-descriptions-item label="platform"><code>wechat | bytedance</code></el-descriptions-item>
         <el-descriptions-item label="status"><code>active | banned</code></el-descriptions-item>
         <el-descriptions-item label="cursor">服务端返回的不透明分页游标</el-descriptions-item>

@@ -34,7 +34,7 @@ async function load(): Promise<void> {
   try {
     player.value = await getPlayer(playerId)
   } catch (error) {
-    errorMessage.value = error instanceof ApiRequestError ? error.message : '玩家详情加载失败'
+    errorMessage.value = error instanceof ApiRequestError ? error.message : '用户详情加载失败'
   } finally {
     loading.value = false
   }
@@ -51,7 +51,7 @@ async function confirmBan(): Promise<void> {
       reason: banForm.reason.trim(),
       ...(banForm.note.trim() ? { note: banForm.note.trim() } : {}),
     })
-    ElMessage.success('玩家已封禁，已有会话的下一次请求将被拒绝')
+    ElMessage.success('用户已封禁，已有会话的下一次请求将被拒绝')
     banVisible.value = false
     await load()
   } catch (error) {
@@ -66,7 +66,7 @@ async function confirmUnban(): Promise<void> {
   submitting.value = true
   try {
     await unbanPlayer(playerId, unbanReason.value.trim())
-    ElMessage.success('玩家已解封')
+    ElMessage.success('用户已解封')
     unbanVisible.value = false
     unbanReason.value = ''
     await load()
@@ -82,12 +82,12 @@ onMounted(load)
 
 <template>
   <section v-loading="loading">
-    <el-button text :icon="ArrowLeft" @click="router.push('/players')">返回玩家列表</el-button>
+    <el-button text :icon="ArrowLeft" @click="router.push('/players')">返回用户列表</el-button>
     <header class="page-heading detail-heading">
-      <div><h1>玩家详情</h1><p><code>{{ playerId }}</code></p></div>
+      <div><h1>用户详情</h1><p><code>{{ playerId }}</code></p></div>
       <div v-if="player" class="heading-actions">
         <el-button v-if="player.save" :icon="View" @click="router.push(`/players/${playerId}/save`)">存档诊断</el-button>
-        <el-button v-if="canBan && player.status === 'active'" type="danger" :icon="Lock" @click="banVisible = true">封禁玩家</el-button>
+        <el-button v-if="canBan && player.status === 'active'" type="danger" :icon="Lock" @click="banVisible = true">封禁用户</el-button>
         <el-button v-if="canBan && player.status === 'banned'" type="success" :icon="Unlock" @click="unbanVisible = true">解除封禁</el-button>
       </div>
     </header>
@@ -112,7 +112,7 @@ onMounted(load)
             <el-avatar :size="72" :src="player.profile.avatarUrl">猫</el-avatar>
             <div><strong>{{ player.profile.nickName }}</strong><small>资料更新：{{ formatTime(player.profile.updatedAt) }}</small></div>
           </div>
-          <el-empty v-else description="玩家尚未授权头像昵称" :image-size="72" />
+          <el-empty v-else description="用户尚未授权头像昵称" :image-size="72" />
         </el-card>
       </div>
       <el-card shadow="never" class="save-card">
@@ -128,8 +128,8 @@ onMounted(load)
       </el-card>
     </template>
 
-    <el-dialog v-model="banVisible" title="封禁玩家" width="560px">
-      <el-alert title="封禁将在玩家已有会话的下一次资料或云存档请求时生效。永久封禁仅超级管理员可执行。" type="warning" :closable="false" show-icon />
+    <el-dialog v-model="banVisible" title="封禁用户" width="560px">
+      <el-alert title="封禁将在用户已有会话的下一次资料或云存档请求时生效。永久封禁仅超级管理员可执行。" type="warning" :closable="false" show-icon />
       <el-form label-position="top" class="dialog-form">
         <el-form-item label="封禁类型" required>
           <el-radio-group v-model="banForm.type">

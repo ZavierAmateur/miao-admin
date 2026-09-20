@@ -29,7 +29,7 @@ async function logout(): Promise<void> {
         <div><strong>旅行日记</strong><span>管理后台</span></div>
       </div>
       <el-menu router :default-active="route.path" class="side-menu">
-        <el-menu-item index="/players"><el-icon><UserFilled /></el-icon><span>玩家管理</span></el-menu-item>
+        <el-menu-item index="/players"><el-icon><UserFilled /></el-icon><span>用户管理</span></el-menu-item>
         <el-menu-item v-if="auth.hasPermission('error:read')" index="/errors"><el-icon><WarningFilled /></el-icon><span>错误日志</span></el-menu-item>
       </el-menu>
       <div class="sidebar-foot">V1 · 简易内部后台</div>
