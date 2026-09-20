@@ -28,6 +28,14 @@ npm test
 npm run build
 ```
 
+CloudBase 生产部署前执行完整检查：
+
+```bash
+npm run verify:cloud
+```
+
+该命令会使用 `.env.production` 构建 `dist`，并检查产物没有写入 CloudBase Run 直连域名、服务端 Secret、Source Map 等不应发布的内容。
+
 ## 安全边界
 
 - 管理会话预期由后端通过 `HttpOnly + Secure + SameSite` Cookie 管理。
@@ -51,3 +59,15 @@ npm run dev:cloud
 然后访问终端显示的 `http://127.0.0.1:端口`。该模式仍让浏览器请求同源 `/admin/v1/*`，由只监听回环地址的本地 Vite 代理转发到 CloudBase；代理使用后端已登记的 Origin，并仅在本机响应中移除 Cookie 的 `Secure` 属性，使 HTTP 回环地址能够保存管理员会话。管理员密码仍由登录页输入，不写入前端环境文件、源码或 localStorage。
 
 `.env.cloud` 只包含公开服务地址，不包含任何管理员密码、AppSecret 或 CloudBase API Key。迁移 CloudBase 环境时更新 `VITE_ADMIN_PROXY_TARGET`。
+
+## CloudBase 生产部署
+
+生产后台采用“静态网站托管 + HTTP 网关同域分流”，不新增管理后台容器：
+
+- 网关根路径 `/` 指向本仓库构建出的静态站点。
+- 同一域名的 `/admin/v1` 指向现有 `miao-travel-wechat` 云托管服务，并开启路径透传。
+- 后端 `ADMIN_WEB_ORIGIN` 必须配置为该网关 HTTPS Origin，且不带末尾 `/`。
+
+该结构让页面和管理 API 保持同源，生产环境继续使用 `HttpOnly + Secure + SameSite=Strict` Cookie。不能把静态站点直接跨域连接 CloudBase Run 默认域名，也不能把管理员 token 改存到浏览器。
+
+完整控制台步骤和验收清单见 [CloudBase 静态托管部署说明](docs/deployment/CloudBase静态托管部署说明.md)。
