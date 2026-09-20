@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Bell, DataAnalysis, Document, Link, User, UserFilled } from '@element-plus/icons-vue'
+import { User, UserFilled } from '@element-plus/icons-vue'
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { runtimeConfig } from '../config/runtime'
@@ -29,12 +29,9 @@ async function logout(): Promise<void> {
         <div><strong>旅行日记</strong><span>管理后台</span></div>
       </div>
       <el-menu router :default-active="route.path" class="side-menu">
-        <el-menu-item index="/"><el-icon><DataAnalysis /></el-icon><span>仪表盘</span></el-menu-item>
         <el-menu-item index="/players"><el-icon><UserFilled /></el-icon><span>玩家管理</span></el-menu-item>
-        <el-menu-item index="/contract-status"><el-icon><Link /></el-icon><span>接口状态</span></el-menu-item>
-        <el-menu-item index="/api-docs"><el-icon><Document /></el-icon><span>接口文档</span></el-menu-item>
       </el-menu>
-      <div class="sidebar-foot">V1 · Internal</div>
+      <div class="sidebar-foot">V1 · 简易内部后台</div>
     </el-aside>
 
     <el-container>
@@ -43,8 +40,6 @@ async function logout(): Promise<void> {
           {{ environmentLabel }}
         </el-tag>
         <div class="topbar-actions">
-          <el-button text circle aria-label="通知"><el-icon><Bell /></el-icon></el-button>
-          <el-divider direction="vertical" />
           <el-icon><User /></el-icon><span>{{ auth.identity?.displayName ?? '未登录' }}</span>
           <el-button text type="primary" @click="logout">退出</el-button>
         </div>

@@ -75,7 +75,6 @@ onMounted(load)
             <el-descriptions-item label="客户端版本">{{ item.value.clientVersion }}</el-descriptions-item>
             <el-descriptions-item label="服务端保存">{{ formatTime(item.value.serverSavedAt) }}</el-descriptions-item>
             <el-descriptions-item label="大小">{{ item.value.sizeBytes.toLocaleString() }} Bytes</el-descriptions-item>
-            <el-descriptions-item label="Hash"><code class="hash">{{ item.value.hash }}</code></el-descriptions-item>
           </el-descriptions>
           <el-empty v-else description="没有上一版本" :image-size="64" />
         </el-card>
@@ -105,7 +104,6 @@ onMounted(load)
 .version-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
 .diff-card { margin-top: 18px; }
 .dialog-form { margin-top: 18px; }
-.hash { word-break: break-all; }
 .value { white-space: pre-wrap; word-break: break-word; }
 code { color: #475569; }
 </style>

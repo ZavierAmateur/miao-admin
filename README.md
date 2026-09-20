@@ -2,9 +2,9 @@
 
 内部管理后台，使用 Vue 3、TypeScript、Vite、Element Plus、Vue Router 和 Pinia。
 
-## 当前阶段
+## 当前范围
 
-A1 管理员认证接入。实际后端 `miao-travel-server` 已提供登录、当前会话和退出接口；玩家查询等业务管理接口仍按后续阶段逐项接入。
+V1 是单管理员使用的简易内部后台，已接入实际后端 `miao-travel-server` 的管理员登录、玩家查询、资料查看、云存档诊断/回滚和封禁/解封接口。不开发管理员管理、复杂角色配置、通知中心和占位指标仪表盘。
 
 ## 本地运行
 
@@ -38,3 +38,15 @@ npm run build
 ## 本地管理员联调
 
 先按后端 README 配置 `ADMIN_BOOTSTRAP_ACCOUNT` 和 `ADMIN_BOOTSTRAP_PASSWORD` 并启动 `miao-travel-server`，再运行 `npm run dev`。管理后台不内置默认账号或密码。
+
+## 联调 CloudBase 线上接口
+
+后端 `miao-travel-wechat` 已部署时可直接运行：
+
+```bash
+npm run dev:cloud
+```
+
+然后访问终端显示的 `http://127.0.0.1:端口`。该模式仍让浏览器请求同源 `/admin/v1/*`，由只监听回环地址的本地 Vite 代理转发到 CloudBase；代理使用后端已登记的 Origin，并仅在本机响应中移除 Cookie 的 `Secure` 属性，使 HTTP 回环地址能够保存管理员会话。管理员密码仍由登录页输入，不写入前端环境文件、源码或 localStorage。
+
+`.env.cloud` 只包含公开服务地址，不包含任何管理员密码、AppSecret 或 CloudBase API Key。迁移 CloudBase 环境时更新 `VITE_ADMIN_PROXY_TARGET`。

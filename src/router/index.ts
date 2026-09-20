@@ -17,15 +17,7 @@ const router = createRouter({
       children: [
         {
           path: '',
-          name: 'dashboard',
-          component: () => import('../views/DashboardView.vue'),
-          meta: { title: '仪表盘', permission: 'metrics:read' },
-        },
-        {
-          path: 'contract-status',
-          name: 'contract-status',
-          component: () => import('../views/ContractStatusView.vue'),
-          meta: { title: '接口状态' },
+          redirect: { name: 'players' },
         },
         {
           path: 'players',
@@ -44,12 +36,6 @@ const router = createRouter({
           name: 'player-save',
           component: () => import('../views/SaveDiagnosticsView.vue'),
           meta: { title: '云存档诊断', permission: 'save:read' },
-        },
-        {
-          path: 'api-docs',
-          name: 'api-docs',
-          component: () => import('../views/ApiDocsView.vue'),
-          meta: { title: '请求接口文档' },
         },
       ],
     },
@@ -78,7 +64,7 @@ router.beforeEach(async (to) => {
       if (!to.meta.public) return { name: 'login', query: { redirect: to.fullPath, unavailable: '1' } }
     }
   }
-  if (to.name === 'login' && auth.isAuthenticated) return { name: 'dashboard' }
+  if (to.name === 'login' && auth.isAuthenticated) return { name: 'players' }
   if (to.meta.public) return true
   if (!auth.isAuthenticated) {
     return { name: 'login', query: { redirect: to.fullPath } }

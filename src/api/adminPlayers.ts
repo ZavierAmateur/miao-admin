@@ -60,7 +60,6 @@ export function getPlayer(playerId: string): Promise<PlayerDetail> {
 }
 
 export interface SaveVersionDetail extends SaveSummary {
-  readonly hash: string
   readonly user: Readonly<Record<string, unknown>>
 }
 
