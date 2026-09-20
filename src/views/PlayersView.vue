@@ -101,6 +101,11 @@ onMounted(() => load())
           </el-empty>
         </template>
         <el-table-column prop="id" label="用户 ID" min-width="260"><template #default="scope"><code>{{ scope.row.id }}</code></template></el-table-column>
+        <el-table-column label="微信昵称" min-width="140"><template #default="scope">{{ scope.row.profile?.nickName || '未授权' }}</template></el-table-column>
+        <el-table-column label="微信头像" width="100" align="center">
+          <template #default="scope"><el-avatar :size="38" :src="scope.row.profile?.avatarUrl || ''">猫</el-avatar></template>
+        </el-table-column>
+        <el-table-column label="创建时间" min-width="170"><template #default="scope">{{ formatTime(scope.row.createdAt) }}</template></el-table-column>
         <el-table-column label="平台" width="100"><template #default="scope">{{ scope.row.platform === 'wechat' ? '微信' : '抖音' }}</template></el-table-column>
         <el-table-column label="状态" width="100"><template #default="scope"><el-tag :type="scope.row.status === 'active' ? 'success' : 'danger'">{{ scope.row.status === 'active' ? '正常' : '已封禁' }}</el-tag></template></el-table-column>
         <el-table-column label="最近登录" min-width="170"><template #default="scope">{{ formatTime(scope.row.lastLoginAt) }}</template></el-table-column>

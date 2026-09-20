@@ -11,12 +11,19 @@ export interface SaveSummary {
   readonly sizeBytes: number
 }
 
+export interface PlayerProfileSummary {
+  readonly nickName: string
+  readonly avatarUrl: string
+  readonly updatedAt: number
+}
+
 export interface PlayerListItem {
   readonly id: string
   readonly platform: PlayerPlatform
   readonly status: PlayerStatus
   readonly createdAt: number
   readonly lastLoginAt: number
+  readonly profile: PlayerProfileSummary | null
   readonly save: SaveSummary | null
 }
 
@@ -28,11 +35,7 @@ export interface PlayerDetail extends PlayerListItem {
     readonly bannedAt: number
     readonly permanent: boolean
   } | null
-  readonly profile: {
-    readonly nickName: string
-    readonly avatarUrl: string
-    readonly updatedAt: number
-  } | null
+  readonly profile: PlayerProfileSummary | null
 }
 
 export interface PlayerQuery {
