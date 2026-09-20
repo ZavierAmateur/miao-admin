@@ -37,6 +37,12 @@ const router = createRouter({
           component: () => import('../views/SaveDiagnosticsView.vue'),
           meta: { title: '云存档诊断', permission: 'save:read' },
         },
+        {
+          path: 'errors',
+          name: 'errors',
+          component: () => import('../views/ErrorLogsView.vue'),
+          meta: { title: '错误日志', permission: 'error:read' },
+        },
       ],
     },
     {
