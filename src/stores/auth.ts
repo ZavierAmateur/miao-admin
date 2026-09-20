@@ -22,14 +22,23 @@ export const useAuthStore = defineStore('auth', {
     hasPermission(permission: string): boolean {
       return this.identity?.permissions.includes(permission) ?? false
     },
+    resetSessionCheck() {
+      this.identity = null
+      this.sessionChecked = false
+    },
     async restoreSession(): Promise<void> {
       if (this.sessionChecked) return
       try {
         const result = await adminAuthApi.getCurrentAdmin()
         this.setIdentity(result.identity)
       } catch (error) {
-        this.setIdentity(null)
-        if (!(error instanceof ApiRequestError) || ![401, 403].includes(error.status)) throw error
+        if (error instanceof ApiRequestError && [401, 403].includes(error.status)) {
+          this.setIdentity(null)
+          return
+        }
+        // 5xx、代理断开或冷启动失败不代表“会话检查完成”，必须允许页面再次探测。
+        this.resetSessionCheck()
+        throw error
       }
     },
     async login(account: string, password: string): Promise<void> {

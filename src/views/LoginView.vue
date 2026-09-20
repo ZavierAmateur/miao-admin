@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Lock, User } from '@element-plus/icons-vue'
-import { computed, reactive, ref } from 'vue'
+import { onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ApiRequestError } from '../api/types'
 import { useAuthStore } from '../stores/auth'
@@ -11,23 +11,57 @@ const errorMessage = ref('')
 const auth = useAuthStore()
 const route = useRoute()
 const router = useRouter()
-const backendUnavailable = computed(() => route.query.unavailable === '1')
+const backendUnavailable = ref(route.query.unavailable === '1')
+const checkingBackend = ref(false)
+
+function loginRedirect(): string {
+  return typeof route.query.redirect === 'string' && route.query.redirect.startsWith('/')
+    ? route.query.redirect
+    : '/'
+}
+
+async function clearUnavailableQuery(): Promise<void> {
+  if (route.query.unavailable !== '1') return
+  const query = { ...route.query }
+  delete query.unavailable
+  await router.replace({ query })
+}
+
+async function checkBackend(): Promise<void> {
+  checkingBackend.value = true
+  errorMessage.value = ''
+  auth.resetSessionCheck()
+  try {
+    await auth.restoreSession()
+    backendUnavailable.value = false
+    await clearUnavailableQuery()
+    if (auth.isAuthenticated) await router.replace(loginRedirect())
+  } catch {
+    backendUnavailable.value = true
+  } finally {
+    checkingBackend.value = false
+  }
+}
 
 async function submit(): Promise<void> {
   errorMessage.value = ''
   loading.value = true
   try {
     await auth.login(form.account, form.password)
-    const redirect = typeof route.query.redirect === 'string' && route.query.redirect.startsWith('/')
-      ? route.query.redirect
-      : '/'
-    await router.replace(redirect)
+    backendUnavailable.value = false
+    await router.replace(loginRedirect())
   } catch (error) {
-    errorMessage.value = error instanceof ApiRequestError ? error.message : '管理服务暂时不可用，请稍后重试'
+    const unavailable = !(error instanceof ApiRequestError) || error.status >= 500
+    backendUnavailable.value = unavailable
+    errorMessage.value = unavailable ? '' : error.message
   } finally {
     loading.value = false
   }
 }
+
+onMounted(() => {
+  if (backendUnavailable.value) void checkBackend()
+})
 </script>
 
 <template>
@@ -43,13 +77,20 @@ async function submit(): Promise<void> {
       <el-card shadow="never" class="login-card">
         <template #header><div><h2>管理员登录</h2><p>仅限已授权的内部账号</p></div></template>
         <el-alert
-          v-if="backendUnavailable || errorMessage"
-          :title="errorMessage || '管理服务暂时不可用'"
-          description="请确认 miao-travel-server 已启用管理员认证并可从当前环境访问。"
+          v-if="backendUnavailable"
+          description="CloudBase 可能仍在冷启动，请等待片刻或重试连接。"
           type="error"
           :closable="false"
           show-icon
-        />
+        >
+          <template #title>
+            <span class="availability-title">
+              管理服务暂时不可用
+              <el-button link type="danger" :loading="checkingBackend" @click="checkBackend">重试连接</el-button>
+            </span>
+          </template>
+        </el-alert>
+        <el-alert v-if="errorMessage" :title="errorMessage" type="error" :closable="false" show-icon />
         <el-form :model="form" label-position="top" class="login-form" @submit.prevent="submit">
           <el-form-item label="管理员账号">
             <el-input v-model="form.account" placeholder="请输入管理员账号" autocomplete="username" :prefix-icon="User" />
@@ -87,6 +128,7 @@ h1 { margin: 24px 0; font-size: clamp(38px, 4vw, 58px); line-height: 1.2; letter
 .login-card h2 { margin: 0 0 8px; color: #172033; font-size: 28px; }
 .login-card p { margin: 0; color: #7b8495; }
 .login-form { margin-top: 24px; }
+.availability-title { display: inline-flex; align-items: center; gap: 10px; }
 .submit { width: 100%; margin-top: 8px; }
 .security-note { margin-top: 18px !important; text-align: center; font-size: 12px; }
 </style>
