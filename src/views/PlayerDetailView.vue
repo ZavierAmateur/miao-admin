@@ -3,16 +3,20 @@ import { ArrowLeft, Lock, Unlock, View } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { banPlayer, getPlayer, unbanPlayer, type PlayerDetail } from '../api/adminPlayers'
+import { banPlayer, getPlayer, getSaveDiagnostics, unbanPlayer, type PlayerDetail, type SaveDiagnostics } from '../api/adminPlayers'
 import { ApiRequestError } from '../api/types'
 import { useAuthStore } from '../stores/auth'
+import { buildPlayerSaveRows, stringifyPlayerSave } from '../utils/playerSavePresentation'
 
 const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
 const player = ref<PlayerDetail | null>(null)
+const saveDiagnostics = ref<SaveDiagnostics | null>(null)
 const loading = ref(true)
+const saveLoading = ref(false)
 const errorMessage = ref('')
+const saveErrorMessage = ref('')
 const playerId = String(route.params.playerId)
 const banVisible = ref(false)
 const unbanVisible = ref(false)
@@ -22,7 +26,12 @@ const banForm = reactive<{ type: 'temporary' | 'permanent'; expiresAt: Date | nu
 })
 const unbanReason = ref('')
 const canBan = computed(() => auth.hasPermission('player:ban'))
+const canReadSave = computed(() => auth.hasPermission('save:read'))
 const isAdmin = computed(() => auth.identity?.role === 'admin')
+const saveRows = computed(() => buildPlayerSaveRows(saveDiagnostics.value?.current.user ?? {}))
+const coreSaveRows = computed(() => saveRows.value.filter((item) => item.core))
+const moreSaveRows = computed(() => saveRows.value.filter((item) => !item.core))
+const rawSaveJson = computed(() => stringifyPlayerSave(saveDiagnostics.value?.current.user ?? {}))
 
 function formatTime(value?: number): string {
   return value ? new Intl.DateTimeFormat('zh-CN', { dateStyle: 'long', timeStyle: 'medium' }).format(value) : '--'
@@ -31,12 +40,29 @@ function formatTime(value?: number): string {
 async function load(): Promise<void> {
   loading.value = true
   errorMessage.value = ''
+  saveErrorMessage.value = ''
+  saveDiagnostics.value = null
+  let shouldLoadSave = false
   try {
     player.value = await getPlayer(playerId)
+    shouldLoadSave = Boolean(player.value.save && canReadSave.value)
   } catch (error) {
     errorMessage.value = error instanceof ApiRequestError ? error.message : '用户详情加载失败'
   } finally {
     loading.value = false
+  }
+  if (shouldLoadSave) await loadSaveContent()
+}
+
+async function loadSaveContent(): Promise<void> {
+  saveLoading.value = true
+  saveErrorMessage.value = ''
+  try {
+    saveDiagnostics.value = await getSaveDiagnostics(playerId)
+  } catch (error) {
+    saveErrorMessage.value = error instanceof ApiRequestError ? error.message : '存档内容加载失败'
+  } finally {
+    saveLoading.value = false
   }
 }
 
@@ -86,7 +112,7 @@ onMounted(load)
     <header class="page-heading detail-heading">
       <div><h1>用户详情</h1><p><code>{{ playerId }}</code></p></div>
       <div v-if="player" class="heading-actions">
-        <el-button v-if="player.save" :icon="View" @click="router.push(`/players/${playerId}/save`)">存档诊断</el-button>
+        <el-button v-if="player.save && canReadSave" :icon="View" @click="router.push(`/players/${playerId}/save`)">存档诊断</el-button>
         <el-button v-if="canBan && player.status === 'active'" type="danger" :icon="Lock" @click="banVisible = true">封禁用户</el-button>
         <el-button v-if="canBan && player.status === 'banned'" type="success" :icon="Unlock" @click="unbanVisible = true">解除封禁</el-button>
       </div>
@@ -126,6 +152,38 @@ onMounted(load)
         </el-descriptions>
         <el-empty v-else description="暂无云存档" :image-size="72" />
       </el-card>
+      <el-card v-if="player.save && canReadSave" v-loading="saveLoading" shadow="never" class="save-card">
+        <template #header>
+          <div class="card-heading">
+            <strong>当前游戏进度</strong>
+            <el-button text type="primary" @click="loadSaveContent">刷新</el-button>
+          </div>
+        </template>
+        <el-alert v-if="saveErrorMessage" :title="saveErrorMessage" type="error" :closable="false" show-icon />
+        <template v-else-if="saveDiagnostics">
+          <el-alert title="当前 V1 云存档只包含 user 白名单字段，本地设置、引导和活动数据不会显示在这里。" type="info" :closable="false" show-icon />
+          <el-descriptions v-if="coreSaveRows.length" :column="4" border class="progress-summary">
+            <el-descriptions-item v-for="item in coreSaveRows" :key="item.key" :label="item.label">
+              <span class="save-value">{{ item.displayValue }}</span>
+            </el-descriptions-item>
+          </el-descriptions>
+          <el-empty v-else description="存档中没有可展示的 user 字段" :image-size="64" />
+
+          <el-collapse class="save-details">
+            <el-collapse-item :title="`更多存档字段（${moreSaveRows.length}）`" name="more">
+              <el-table :data="moreSaveRows" empty-text="没有其他存档字段" size="small">
+                <el-table-column prop="label" label="名称" min-width="180" />
+                <el-table-column prop="key" label="字段" min-width="190"><template #default="scope"><code>{{ scope.row.key }}</code></template></el-table-column>
+                <el-table-column label="当前值" min-width="280"><template #default="scope"><span class="save-value">{{ scope.row.displayValue }}</span></template></el-table-column>
+              </el-table>
+            </el-collapse-item>
+            <el-collapse-item title="查看原始 JSON" name="json">
+              <pre class="raw-json">{{ rawSaveJson }}</pre>
+            </el-collapse-item>
+          </el-collapse>
+        </template>
+      </el-card>
+      <el-alert v-else-if="player.save && !canReadSave" title="当前账号没有查看存档内容的权限。" type="info" :closable="false" show-icon class="save-card" />
     </template>
 
     <el-dialog v-model="banVisible" title="封禁用户" width="560px">
@@ -162,6 +220,16 @@ onMounted(load)
 .profile strong { margin-bottom: 10px; font-size: 18px; }
 .profile small { color: #6b7280; }
 .save-card { margin-top: 18px; }
+.card-heading { display: flex; align-items: center; justify-content: space-between; }
+.progress-summary { margin-top: 16px; }
+.save-details { margin-top: 16px; }
+.save-value { white-space: pre-wrap; word-break: break-word; }
+.raw-json { margin: 0; padding: 16px; overflow: auto; border-radius: 6px; background: #0f172a; color: #e2e8f0; line-height: 1.55; }
 .dialog-form { margin-top: 18px; }
 code { color: #475569; }
+
+@media (max-width: 1100px) {
+  .detail-grid { grid-template-columns: 1fr; }
+  .progress-summary { --el-descriptions-table-border: 1px solid var(--el-border-color-lighter); }
+}
 </style>
