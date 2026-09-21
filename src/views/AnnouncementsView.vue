@@ -3,7 +3,7 @@ import { BellFilled, Delete, Edit, Plus, Refresh, Search } from '@element-plus/i
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { deleteAnnouncement, listAnnouncements, type AnnouncementListItem, type AnnouncementPlatform, type AnnouncementStatus } from '../api/adminAnnouncements'
+import { deleteAnnouncement, getAnnouncement, listAnnouncements, updateAnnouncement, type AnnouncementInput, type AnnouncementListItem, type AnnouncementPlatform, type AnnouncementStatus } from '../api/adminAnnouncements'
 import { ApiRequestError } from '../api/types'
 import { useAuthStore } from '../stores/auth'
 import AnnouncementEditor from '../components/AnnouncementEditor.vue'
@@ -19,6 +19,7 @@ const pageSize = 20
 const total = ref(0)
 const createVisible = ref(false)
 const editingId = ref('')
+const rowSaving = reactive<Record<string, boolean>>({})
 const filters = reactive<{ keyword: string; status: '' | AnnouncementStatus; platform: '' | AnnouncementPlatform }>({
   keyword: '', status: '', platform: '',
 })
@@ -96,13 +97,73 @@ async function remove(value: unknown): Promise<void> {
   }
 }
 
+async function updateRow(
+  row: AnnouncementListItem,
+  patch: Partial<Pick<AnnouncementInput, 'status' | 'platforms' | 'autoPopup'>>,
+  successMessage: string,
+): Promise<void> {
+  if (rowSaving[row.id]) return
+  if (patch.platforms?.length === 0) {
+    ElMessage.warning('至少选择一个平台')
+    return
+  }
+  rowSaving[row.id] = true
+  try {
+    const current = await getAnnouncement(row.id)
+    const updated = await updateAnnouncement(row.id, {
+      title: current.title,
+      contentHtml: current.contentHtml,
+      images: current.images,
+      status: patch.status ?? current.status,
+      platforms: patch.platforms ?? current.platforms,
+      sortOrder: current.sortOrder,
+      autoPopup: patch.autoPopup ?? current.autoPopup,
+      startsAt: current.startsAt,
+      endsAt: current.endsAt,
+    })
+    const index = rows.value.findIndex((item) => item.id === row.id)
+    if (index >= 0) {
+      rows.value[index] = {
+        id: updated.id,
+        title: updated.title,
+        status: updated.status,
+        platforms: [...updated.platforms],
+        sortOrder: updated.sortOrder,
+        autoPopup: updated.autoPopup,
+        startsAt: updated.startsAt,
+        endsAt: updated.endsAt,
+        imageCount: updated.images.length,
+        createdAt: updated.createdAt,
+        updatedAt: updated.updatedAt,
+      }
+    }
+    ElMessage.success(successMessage)
+  } catch (error) {
+    ElMessage.error(error instanceof ApiRequestError ? error.message : '公告更新失败')
+  } finally {
+    rowSaving[row.id] = false
+  }
+}
+
+function changeStatus(value: unknown, selected: unknown): void {
+  void updateRow(value as AnnouncementListItem, { status: selected as AnnouncementStatus }, '公告状态已更新')
+}
+
+function togglePlatform(value: unknown, platform: AnnouncementPlatform, enabled: unknown): void {
+  const row = value as AnnouncementListItem
+  const platforms = enabled
+    ? [...new Set([...row.platforms, platform])]
+    : row.platforms.filter((item) => item !== platform)
+  void updateRow(row, { platforms }, '投放平台已更新')
+}
+
+function changeAutoPopup(value: unknown, selected: unknown): void {
+  void updateRow(value as AnnouncementListItem, { autoPopup: selected as boolean }, '自动弹出设置已更新')
+}
+
 function formatTime(value: number): string {
   if (value === 0) return '不限'
   return new Intl.DateTimeFormat('zh-CN', { dateStyle: 'medium', timeStyle: 'short' }).format(value)
-}
-
-function platformText(platforms: readonly AnnouncementPlatform[]): string {
-  return platforms.map((platform) => platform === 'wechat' ? '微信' : '抖音').join('、')
 }
 
 onMounted(() => {
@@ -140,14 +201,31 @@ onMounted(() => {
     <el-alert v-if="errorMessage" :title="errorMessage" type="error" :closable="false" show-icon />
     <el-card shadow="never" class="table-card">
       <el-table v-loading="loading" :data="rows" empty-text="暂无公告" class="announcement-table">
-        <el-table-column label="公告" min-width="300">
+        <el-table-column label="公告" min-width="180">
           <template #default="scope"><div class="title-cell"><span class="announcement-dot" :class="scope.row.status" /><div><strong>{{ scope.row.title }}</strong><small>更新于 {{ formatTime(scope.row.updatedAt) }}</small></div></div></template>
         </el-table-column>
-        <el-table-column label="状态" width="100"><template #default="scope"><el-tag :type="scope.row.status === 'published' ? 'success' : 'info'">{{ scope.row.status === 'published' ? '已发布' : '草稿' }}</el-tag></template></el-table-column>
-        <el-table-column label="平台" width="140"><template #default="scope">{{ platformText(scope.row.platforms) }}</template></el-table-column>
+        <el-table-column label="状态" width="130">
+          <template #default="scope">
+            <el-select class="table-select status-select" :model-value="scope.row.status" :disabled="!auth.hasPermission('config:write') || rowSaving[scope.row.id]" :loading="rowSaving[scope.row.id]" @change="changeStatus(scope.row, $event)">
+              <el-option label="草稿" value="draft" /><el-option label="已发布" value="published" />
+            </el-select>
+          </template>
+        </el-table-column>
+        <el-table-column label="平台" width="200">
+          <template #default="scope">
+            <div class="platform-switches">
+              <label><span>微信</span><el-switch :model-value="scope.row.platforms.includes('wechat')" :loading="rowSaving[scope.row.id]" :disabled="!auth.hasPermission('config:write') || rowSaving[scope.row.id]" @change="togglePlatform(scope.row, 'wechat', $event)" /></label>
+              <label><span>抖音</span><el-switch :model-value="scope.row.platforms.includes('bytedance')" :loading="rowSaving[scope.row.id]" :disabled="!auth.hasPermission('config:write') || rowSaving[scope.row.id]" @change="togglePlatform(scope.row, 'bytedance', $event)" /></label>
+            </div>
+          </template>
+        </el-table-column>
         <el-table-column prop="sortOrder" label="排序" width="90" />
         <el-table-column label="图片" width="90"><template #default="scope">{{ scope.row.imageCount }} 张</template></el-table-column>
-        <el-table-column label="自动弹出" width="100"><template #default="scope">{{ scope.row.autoPopup ? '是' : '否' }}</template></el-table-column>
+        <el-table-column label="自动弹出" width="130">
+          <template #default="scope">
+            <el-switch :model-value="scope.row.autoPopup" inline-prompt active-text="是" inactive-text="否" :loading="rowSaving[scope.row.id]" :disabled="!auth.hasPermission('config:write') || rowSaving[scope.row.id]" @change="changeAutoPopup(scope.row, $event)" />
+          </template>
+        </el-table-column>
         <el-table-column label="生效时间" min-width="170"><template #default="scope">{{ formatTime(scope.row.startsAt) }}</template></el-table-column>
         <el-table-column label="操作" width="150" fixed="right">
           <template #default="scope">
@@ -190,6 +268,12 @@ onMounted(() => {
 .table-card :deep(.el-card__body) { padding: 8px 18px 18px; }
 .announcement-table :deep(th.el-table__cell) { height: 48px; color: #667085; background: #fafbfc; font-weight: 600; }
 .announcement-table :deep(td.el-table__cell) { padding: 14px 0; }
+.table-select { width: 132px; }
+.status-select { width: 96px; }
+.table-select :deep(.el-select__wrapper) { min-height: 32px; border-radius: 8px; box-shadow: 0 0 0 1px #e2e7ef inset; }
+.table-select :deep(.el-select__wrapper:hover) { box-shadow: 0 0 0 1px #9ec8ff inset; }
+.platform-switches { display: flex; align-items: center; gap: 14px; }
+.platform-switches label { display: flex; align-items: center; gap: 6px; color: #667085; font-size: 12px; }
 .title-cell { display: flex; align-items: center; gap: 12px; }
 .title-cell > div { display: grid; gap: 5px; min-width: 0; }
 .title-cell strong { overflow: hidden; color: #273449; text-overflow: ellipsis; white-space: nowrap; }
