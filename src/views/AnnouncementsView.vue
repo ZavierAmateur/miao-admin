@@ -237,7 +237,7 @@ onMounted(() => {
             </div>
           </template>
         </el-table-column>
-        <el-table-column label="状态" width="90" align="center">
+        <el-table-column label="状态" min-width="90" align="center">
           <template #default="scope">
             <el-switch
               :model-value="scope.row.status === 'published'" inline-prompt active-text="启用" inactive-text="停用"
@@ -247,7 +247,7 @@ onMounted(() => {
             />
           </template>
         </el-table-column>
-        <el-table-column label="平台" width="130" align="center">
+        <el-table-column label="平台" min-width="130" align="center">
           <template #default="scope">
             <el-select
               class="table-select platform-select" size="small" :model-value="scope.row.platforms" multiple collapse-tags
@@ -259,14 +259,14 @@ onMounted(() => {
             </el-select>
           </template>
         </el-table-column>
-        <el-table-column prop="sortOrder" label="排序" width="70" align="center" />
+        <el-table-column prop="sortOrder" label="排序" min-width="70" align="center" />
         <el-table-column label="图片" width="70" align="center">
           <template #default="scope">
             {{ scope.row.imageCount }}
             张
           </template>
         </el-table-column>
-        <el-table-column label="自动弹出" width="90" align="center">
+        <el-table-column label="自动弹出" min-width="90" align="center">
           <template #default="scope">
             <el-select
               class="table-select auto-popup-select" size="small" :model-value="scope.row.autoPopup"
