@@ -9,7 +9,16 @@ export default tseslint.config(
   ...vue.configs['flat/recommended'],
   {
     files: ['**/*.vue'],
-    languageOptions: { parserOptions: { parser: tseslint.parser } },
+    languageOptions: {
+      parserOptions: { parser: tseslint.parser },
+      globals: {
+        document: 'readonly',
+        ClipboardEvent: 'readonly',
+        Event: 'readonly',
+        HTMLElement: 'readonly',
+        HTMLInputElement: 'readonly',
+      },
+    },
     rules: {
       'vue/html-self-closing': 'off',
       'vue/max-attributes-per-line': 'off',

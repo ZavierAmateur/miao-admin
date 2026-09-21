@@ -13,13 +13,16 @@ export async function apiRequest<T>(path: `/admin/v1/${string}`, options: Reques
   const headers = new Headers(options.headers)
   headers.set('Accept', 'application/json')
   headers.set('X-Request-Id', crypto.randomUUID())
-  if (options.body !== undefined) headers.set('Content-Type', 'application/json')
+  const isFormData = options.body instanceof FormData
+  if (options.body !== undefined && !isFormData) headers.set('Content-Type', 'application/json')
 
   const response = await fetch(`${runtimeConfig.apiBaseUrl}${path}`, {
     ...options,
     headers,
     credentials: 'include',
-    body: options.body === undefined ? undefined : JSON.stringify(options.body),
+    body: options.body === undefined
+      ? undefined
+      : isFormData ? options.body as FormData : JSON.stringify(options.body),
   })
   const contentType = response.headers.get('content-type') ?? ''
   const payload: unknown = contentType.includes('application/json') ? await response.json() : undefined

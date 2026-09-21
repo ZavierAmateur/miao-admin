@@ -43,6 +43,24 @@ const router = createRouter({
           component: () => import('../views/ErrorLogsView.vue'),
           meta: { title: '错误日志', permission: 'error:read' },
         },
+        {
+          path: 'announcements',
+          name: 'announcements',
+          component: () => import('../views/AnnouncementsView.vue'),
+          meta: { title: '公告管理', permission: 'config:read' },
+        },
+        {
+          path: 'announcements/new',
+          name: 'announcement-create',
+          component: () => import('../views/AnnouncementEditorView.vue'),
+          meta: { title: '新增公告', permission: 'config:write' },
+        },
+        {
+          path: 'announcements/:announcementId/edit',
+          name: 'announcement-edit',
+          component: () => import('../views/AnnouncementEditorView.vue'),
+          meta: { title: '编辑公告', permission: 'config:write' },
+        },
       ],
     },
     {
