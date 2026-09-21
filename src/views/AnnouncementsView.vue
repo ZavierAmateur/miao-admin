@@ -146,7 +146,7 @@ async function updateRow(
 }
 
 function changeStatus(value: unknown, selected: unknown): void {
-  void updateRow(value as AnnouncementListItem, { status: selected as AnnouncementStatus }, '公告状态已更新')
+  void updateRow(value as AnnouncementListItem, { status: selected ? 'published' : 'draft' }, '公告状态已更新')
 }
 
 function changePlatforms(value: unknown, selected: unknown): void {
@@ -200,11 +200,9 @@ onMounted(() => {
         <el-table-column label="公告" min-width="180">
           <template #default="scope"><div class="title-cell"><span class="announcement-dot" :class="scope.row.status" /><div><strong>{{ scope.row.title }}</strong><small>更新于 {{ formatTime(scope.row.updatedAt) }}</small></div></div></template>
         </el-table-column>
-        <el-table-column label="状态" width="130">
+        <el-table-column label="状态" width="110">
           <template #default="scope">
-            <el-select class="table-select status-select" :model-value="scope.row.status" :disabled="!auth.hasPermission('config:write') || rowSaving[scope.row.id]" :loading="rowSaving[scope.row.id]" @change="changeStatus(scope.row, $event)">
-              <el-option label="停用" value="draft" /><el-option label="启用" value="published" />
-            </el-select>
+            <el-switch :model-value="scope.row.status === 'published'" inline-prompt active-text="启用" inactive-text="停用" :width="58" :loading="rowSaving[scope.row.id]" :disabled="!auth.hasPermission('config:write') || rowSaving[scope.row.id]" @change="changeStatus(scope.row, $event)" />
           </template>
         </el-table-column>
         <el-table-column label="平台" width="170">
@@ -264,7 +262,6 @@ onMounted(() => {
 .announcement-table :deep(th.el-table__cell) { height: 48px; color: #667085; background: #fafbfc; font-weight: 600; }
 .announcement-table :deep(td.el-table__cell) { padding: 14px 0; }
 .table-select { width: 132px; }
-.status-select { width: 96px; }
 .table-select :deep(.el-select__wrapper) { min-height: 32px; border-radius: 8px; box-shadow: 0 0 0 1px #e2e7ef inset; }
 .table-select :deep(.el-select__wrapper:hover) { box-shadow: 0 0 0 1px #9ec8ff inset; }
 .title-cell { display: flex; align-items: center; gap: 12px; }
