@@ -52,7 +52,7 @@ const router = createRouter({
         {
           path: 'announcements/new',
           name: 'announcement-create',
-          component: () => import('../views/AnnouncementEditorView.vue'),
+          redirect: { name: 'announcements', query: { action: 'new' } },
           meta: { title: '新增公告', permission: 'config:write' },
         },
         {
