@@ -149,12 +149,8 @@ function changeStatus(value: unknown, selected: unknown): void {
   void updateRow(value as AnnouncementListItem, { status: selected as AnnouncementStatus }, '公告状态已更新')
 }
 
-function togglePlatform(value: unknown, platform: AnnouncementPlatform, enabled: unknown): void {
-  const row = value as AnnouncementListItem
-  const platforms = enabled
-    ? [...new Set([...row.platforms, platform])]
-    : row.platforms.filter((item) => item !== platform)
-  void updateRow(row, { platforms }, '投放平台已更新')
+function changePlatforms(value: unknown, selected: unknown): void {
+  void updateRow(value as AnnouncementListItem, { platforms: selected as AnnouncementPlatform[] }, '投放平台已更新')
 }
 
 function changeAutoPopup(value: unknown, selected: unknown): void {
@@ -211,12 +207,11 @@ onMounted(() => {
             </el-select>
           </template>
         </el-table-column>
-        <el-table-column label="平台" width="200">
+        <el-table-column label="平台" width="170">
           <template #default="scope">
-            <div class="platform-switches">
-              <label><span>微信</span><el-switch :model-value="scope.row.platforms.includes('wechat')" :loading="rowSaving[scope.row.id]" :disabled="!auth.hasPermission('config:write') || rowSaving[scope.row.id]" @change="togglePlatform(scope.row, 'wechat', $event)" /></label>
-              <label><span>抖音</span><el-switch :model-value="scope.row.platforms.includes('bytedance')" :loading="rowSaving[scope.row.id]" :disabled="!auth.hasPermission('config:write') || rowSaving[scope.row.id]" @change="togglePlatform(scope.row, 'bytedance', $event)" /></label>
-            </div>
+            <el-select class="table-select" :model-value="scope.row.platforms" multiple collapse-tags collapse-tags-tooltip :max-collapse-tags="1" :disabled="!auth.hasPermission('config:write') || rowSaving[scope.row.id]" :loading="rowSaving[scope.row.id]" @change="changePlatforms(scope.row, $event)">
+              <el-option label="微信" value="wechat" /><el-option label="抖音" value="bytedance" />
+            </el-select>
           </template>
         </el-table-column>
         <el-table-column prop="sortOrder" label="排序" width="90" />
@@ -272,8 +267,6 @@ onMounted(() => {
 .status-select { width: 96px; }
 .table-select :deep(.el-select__wrapper) { min-height: 32px; border-radius: 8px; box-shadow: 0 0 0 1px #e2e7ef inset; }
 .table-select :deep(.el-select__wrapper:hover) { box-shadow: 0 0 0 1px #9ec8ff inset; }
-.platform-switches { display: flex; align-items: center; gap: 14px; }
-.platform-switches label { display: flex; align-items: center; gap: 6px; color: #667085; font-size: 12px; }
 .title-cell { display: flex; align-items: center; gap: 12px; }
 .title-cell > div { display: grid; gap: 5px; min-width: 0; }
 .title-cell strong { overflow: hidden; color: #273449; text-overflow: ellipsis; white-space: nowrap; }
