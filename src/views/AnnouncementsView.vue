@@ -184,7 +184,7 @@ onMounted(() => {
       <el-form inline class="filter-form" @submit.prevent="search">
         <el-form-item label="标题"><el-input v-model="filters.keyword" clearable placeholder="输入标题关键字" style="width: 220px" /></el-form-item>
         <el-form-item label="状态">
-          <el-select v-model="filters.status" placeholder="全部" style="width: 110px"><el-option label="全部" value="" /><el-option label="草稿" value="draft" /><el-option label="已发布" value="published" /></el-select>
+          <el-select v-model="filters.status" placeholder="全部" style="width: 110px"><el-option label="全部" value="" /><el-option label="停用" value="draft" /><el-option label="启用" value="published" /></el-select>
         </el-form-item>
         <el-form-item label="平台">
           <el-select v-model="filters.platform" placeholder="全部" style="width: 110px"><el-option label="全部" value="" /><el-option label="微信" value="wechat" /><el-option label="抖音" value="bytedance" /></el-select>
@@ -203,7 +203,7 @@ onMounted(() => {
         <el-table-column label="状态" width="130">
           <template #default="scope">
             <el-select class="table-select status-select" :model-value="scope.row.status" :disabled="!auth.hasPermission('config:write') || rowSaving[scope.row.id]" :loading="rowSaving[scope.row.id]" @change="changeStatus(scope.row, $event)">
-              <el-option label="草稿" value="draft" /><el-option label="已发布" value="published" />
+              <el-option label="停用" value="draft" /><el-option label="启用" value="published" />
             </el-select>
           </template>
         </el-table-column>

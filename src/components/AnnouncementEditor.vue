@@ -159,7 +159,7 @@ function cancel(): void {
         <template #header><div class="section-title"><span class="section-index">1</span><div><strong>基础信息</strong><small>设置公告的展示范围与生效规则</small></div></div></template>
         <div class="form-grid">
           <el-form-item label="公告标题" class="full"><el-input v-model="form.title" maxlength="100" show-word-limit placeholder="请输入公告标题" /></el-form-item>
-          <el-form-item label="状态"><el-segmented v-model="form.status" :options="[{ label: '草稿', value: 'draft' }, { label: '已发布', value: 'published' }]" /></el-form-item>
+          <el-form-item label="状态"><el-segmented v-model="form.status" :options="[{ label: '停用', value: 'draft' }, { label: '启用', value: 'published' }]" /></el-form-item>
           <el-form-item label="投放平台"><el-checkbox-group v-model="form.platforms"><el-checkbox-button value="wechat">微信</el-checkbox-button><el-checkbox-button value="bytedance">抖音</el-checkbox-button></el-checkbox-group></el-form-item>
           <el-form-item label="排序（数值越大越靠前）"><el-input-number v-model="form.sortOrder" :min="-100000" :max="100000" /></el-form-item>
           <el-form-item label="打开游戏时自动弹出"><div class="switch-field"><el-switch v-model="form.autoPopup" /><span>{{ form.autoPopup ? '已开启' : '未开启' }}</span></div></el-form-item>
@@ -200,7 +200,7 @@ function cancel(): void {
       </el-card>
 
       <div class="footer-actions">
-        <div class="footer-hint">{{ form.status === 'published' ? '保存后将按生效时间向所选平台展示' : '草稿不会在游戏端展示' }}</div>
+        <div class="footer-hint">{{ form.status === 'published' ? '启用：保存后将按生效时间向所选平台展示' : '停用：不会在游戏端展示' }}</div>
         <el-button size="large" @click="cancel">取消</el-button>
         <el-button type="primary" size="large" :loading="saving" @click="save">{{ isEditing ? '保存修改' : '创建公告' }}</el-button>
       </div>
