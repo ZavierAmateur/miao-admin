@@ -171,7 +171,7 @@ function cancel(): void {
       <el-card shadow="never" class="editor-card content-card">
         <template #header><div class="section-title"><span class="section-index">2</span><div><strong>公告正文</strong><small>建议简洁清晰，重点信息尽量前置</small></div></div></template>
         <SimpleRichTextEditor v-model="form.contentHtml" />
-        <div class="editor-tip">支持标题、粗体、斜体、下划线、列表和居中；图片将在正文后依次展示。</div>
+        <div class="editor-tip">支持局部文字颜色、粗体/斜体/下划线组合、删除线、列表和多种对齐方式；图片将在正文后依次展示。</div>
       </el-card>
 
       <el-card shadow="never" class="editor-card image-card">
