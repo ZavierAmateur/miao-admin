@@ -1,17 +1,14 @@
 <script setup lang="ts">
-import { ArrowDown, ArrowLeft, ArrowUp, Delete, UploadFilled } from '@element-plus/icons-vue'
+import { ArrowDown, ArrowUp, Delete, UploadFilled } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { computed, onMounted, reactive, ref } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
 import { createAnnouncement, getAnnouncement, updateAnnouncement, uploadFile, type AnnouncementImage, type AnnouncementPlatform, type AnnouncementStatus } from '../api/adminAnnouncements'
 import { ApiRequestError } from '../api/types'
-import SimpleRichTextEditor from '../components/SimpleRichTextEditor.vue'
+import SimpleRichTextEditor from './SimpleRichTextEditor.vue'
 
 const props = withDefaults(defineProps<{
-  embedded?: boolean
   announcementId?: string
 }>(), {
-  embedded: false,
   announcementId: '',
 })
 const emit = defineEmits<{
@@ -26,9 +23,7 @@ interface EditableImage {
   alt: string
 }
 
-const route = useRoute()
-const router = useRouter()
-const announcementId = computed(() => props.announcementId || (typeof route.params.announcementId === 'string' ? route.params.announcementId : ''))
+const announcementId = computed(() => props.announcementId)
 const isEditing = computed(() => Boolean(announcementId.value))
 const loading = ref(false)
 const saving = ref(false)
@@ -140,8 +135,7 @@ async function save(): Promise<void> {
     if (isEditing.value) await updateAnnouncement(announcementId.value, input)
     else await createAnnouncement(input)
     ElMessage.success(isEditing.value ? '公告已更新' : '公告已创建')
-    if (props.embedded) emit('saved')
-    else await router.push({ name: 'announcements' })
+    emit('saved')
   } catch (error) {
     ElMessage.error(error instanceof ApiRequestError ? error.message : '公告保存失败')
   } finally {
@@ -152,17 +146,12 @@ async function save(): Promise<void> {
 onMounted(load)
 
 function cancel(): void {
-  if (props.embedded) emit('cancel')
-  else void router.push({ name: 'announcements' })
+  emit('cancel')
 }
 </script>
 
 <template>
-  <section v-loading="loading" :class="{ 'embedded-editor': embedded }">
-    <template v-if="!embedded">
-      <el-button class="back-button" text :icon="ArrowLeft" @click="cancel">返回公告列表</el-button>
-      <header class="page-heading"><h1>{{ isEditing ? '编辑公告' : '新增公告' }}</h1><p>正文使用轻量富文本；图片会由游戏端依次展示在正文下方。</p></header>
-    </template>
+  <section v-loading="loading" class="embedded-editor">
     <el-alert v-if="errorMessage" :title="errorMessage" type="error" :closable="false" show-icon />
 
     <el-form label-position="top" class="editor-form" @submit.prevent="save">
@@ -220,7 +209,6 @@ function cancel(): void {
 </template>
 
 <style scoped>
-.back-button { margin: -8px 0 18px; }
 .editor-form { display: grid; gap: 16px; }
 .embedded-editor { padding: 2px 2px 0; }
 .editor-card { border-color: #e8edf5; border-radius: 12px; }

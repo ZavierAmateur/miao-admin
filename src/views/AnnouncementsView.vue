@@ -6,7 +6,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { deleteAnnouncement, listAnnouncements, type AnnouncementListItem, type AnnouncementPlatform, type AnnouncementStatus } from '../api/adminAnnouncements'
 import { ApiRequestError } from '../api/types'
 import { useAuthStore } from '../stores/auth'
-import AnnouncementEditorView from './AnnouncementEditorView.vue'
+import AnnouncementEditor from '../components/AnnouncementEditor.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -18,6 +18,7 @@ const page = ref(1)
 const pageSize = 20
 const total = ref(0)
 const createVisible = ref(false)
+const editingId = ref('')
 const filters = reactive<{ keyword: string; status: '' | AnnouncementStatus; platform: '' | AnnouncementPlatform }>({
   keyword: '', status: '', platform: '',
 })
@@ -56,19 +57,27 @@ async function reset(): Promise<void> {
 
 function edit(value: unknown): void {
   const row = value as AnnouncementListItem
-  void router.push({ name: 'announcement-edit', params: { announcementId: row.id } })
+  editingId.value = row.id
+  createVisible.value = true
 }
 
-async function created(): Promise<void> {
+function openCreate(): void {
+  editingId.value = ''
+  createVisible.value = true
+}
+
+async function saved(): Promise<void> {
   createVisible.value = false
-  if (route.query.action === 'new') await router.replace({ name: 'announcements' })
+  editingId.value = ''
+  if (route.query.action === 'new' || route.query.edit) await router.replace({ name: 'announcements' })
   page.value = 1
   await load()
 }
 
 function closeCreate(): void {
   createVisible.value = false
-  if (route.query.action === 'new') void router.replace({ name: 'announcements' })
+  editingId.value = ''
+  if (route.query.action === 'new' || route.query.edit) void router.replace({ name: 'announcements' })
 }
 
 async function remove(value: unknown): Promise<void> {
@@ -97,7 +106,8 @@ function platformText(platforms: readonly AnnouncementPlatform[]): string {
 }
 
 onMounted(() => {
-  createVisible.value = route.query.action === 'new'
+  editingId.value = typeof route.query.edit === 'string' ? route.query.edit : ''
+  createVisible.value = route.query.action === 'new' || Boolean(editingId.value)
   void load()
 })
 </script>
@@ -109,7 +119,7 @@ onMounted(() => {
         <span class="hero-icon"><el-icon><BellFilled /></el-icon></span>
         <div><h1>公告管理</h1><p>统一管理游戏内公告、投放平台和展示时间。</p></div>
       </div>
-      <el-button v-if="auth.hasPermission('config:write')" type="primary" size="large" :icon="Plus" @click="createVisible = true">新增公告</el-button>
+      <el-button v-if="auth.hasPermission('config:write')" type="primary" size="large" :icon="Plus" @click="openCreate">新增公告</el-button>
     </header>
 
     <el-card shadow="never" class="filter-card">
@@ -158,9 +168,9 @@ onMounted(() => {
       @closed="closeCreate"
     >
       <template #header>
-        <div class="dialog-heading"><span class="dialog-icon"><el-icon><Plus /></el-icon></span><div><h2>新增公告</h2><p>填写公告内容并设置投放规则，保存后可随时编辑。</p></div></div>
+        <div class="dialog-heading"><span class="dialog-icon"><el-icon><component :is="editingId ? Edit : Plus" /></el-icon></span><div><h2>{{ editingId ? '编辑公告' : '新增公告' }}</h2><p>{{ editingId ? '修改公告内容与投放规则，保存后立即更新。' : '填写公告内容并设置投放规则，保存后可随时编辑。' }}</p></div></div>
       </template>
-      <AnnouncementEditorView embedded @saved="created" @cancel="closeCreate" />
+      <AnnouncementEditor :announcement-id="editingId" @saved="saved" @cancel="closeCreate" />
     </el-dialog>
   </section>
 </template>

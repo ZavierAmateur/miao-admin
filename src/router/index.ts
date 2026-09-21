@@ -58,7 +58,7 @@ const router = createRouter({
         {
           path: 'announcements/:announcementId/edit',
           name: 'announcement-edit',
-          component: () => import('../views/AnnouncementEditorView.vue'),
+          redirect: (to) => ({ name: 'announcements', query: { edit: String(to.params.announcementId) } }),
           meta: { title: '编辑公告', permission: 'config:write' },
         },
       ],
