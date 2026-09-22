@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { Search } from '@element-plus/icons-vue'
+import { onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { listLevelLeaderboard, type LevelLeaderboardItem } from '../api/adminLeaderboards'
+import type { PlayerPlatform } from '../api/adminPlayers'
 import { ApiRequestError } from '../api/types'
 
 type LeaderboardTab = 'level' | 'challenge'
@@ -13,12 +15,20 @@ const errorMessage = ref('')
 const rows = ref<LevelLeaderboardItem[]>([])
 const page = ref(1)
 const hasMore = ref(false)
+const filters = reactive<{ nickName: string; platform: '' | PlayerPlatform; playerId: string }>({
+  nickName: '', platform: '', playerId: '',
+})
 
 async function load(targetPage = page.value): Promise<void> {
   loading.value = true
   errorMessage.value = ''
   try {
-    const result = await listLevelLeaderboard(targetPage)
+    const result = await listLevelLeaderboard({
+      page: targetPage,
+      nickName: filters.nickName.trim() || undefined,
+      platform: filters.platform || undefined,
+      playerId: filters.playerId.trim() || undefined,
+    })
     rows.value = [...result.items]
     page.value = result.page
     hasMore.value = result.hasMore
@@ -27,6 +37,17 @@ async function load(targetPage = page.value): Promise<void> {
   } finally {
     loading.value = false
   }
+}
+
+async function search(): Promise<void> {
+  await load(1)
+}
+
+async function resetFilters(): Promise<void> {
+  filters.nickName = ''
+  filters.platform = ''
+  filters.playerId = ''
+  await load(1)
 }
 
 function formatTime(value: number): string {
@@ -38,10 +59,28 @@ onMounted(() => load())
 
 <template>
   <section>
-    <header class="page-heading"><h1>排行榜</h1><p>查看全平台用户的排行榜数据；游戏内微信好友榜由微信开放数据域独立提供。</p></header>
+    <header class="page-heading"><h1>排行榜</h1><p>按微信昵称、平台或用户 ID 筛选全平台排行榜；游戏内微信好友榜由微信开放数据域独立提供。</p></header>
     <el-card shadow="never" class="ranking-card">
       <el-tabs v-model="activeTab">
         <el-tab-pane label="闯关榜" name="level">
+          <el-form class="filter-form" inline @submit.prevent="search">
+            <el-form-item label="微信昵称">
+              <el-input v-model="filters.nickName" clearable placeholder="输入昵称关键字" style="width: 190px" />
+            </el-form-item>
+            <el-form-item label="平台">
+              <el-select v-model="filters.platform" clearable placeholder="全部" style="width: 130px">
+                <el-option label="微信" value="wechat" />
+                <el-option label="抖音" value="bytedance" />
+              </el-select>
+            </el-form-item>
+            <el-form-item label="用户 ID">
+              <el-input v-model="filters.playerId" clearable placeholder="输入完整用户 ID" style="width: 280px" />
+            </el-form-item>
+            <el-form-item>
+              <el-button type="primary" :icon="Search" :loading="loading" @click="search">查询</el-button>
+              <el-button :disabled="loading" @click="resetFilters">重置</el-button>
+            </el-form-item>
+          </el-form>
           <el-alert v-if="errorMessage" :title="errorMessage" type="error" :closable="false" show-icon class="result-alert" />
           <el-table v-loading="loading" :data="rows">
             <template #empty><el-empty description="暂无闯关榜数据" :image-size="92" /></template>
@@ -89,6 +128,7 @@ onMounted(() => load())
 
 <style scoped>
 .ranking-card { min-height: 520px; }
+.filter-form { padding: 14px 16px 0; margin-bottom: 18px; background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 6px; }
 .result-alert { margin-bottom: 18px; }
 .pager { display: flex; justify-content: flex-end; align-items: center; gap: 14px; margin-top: 18px; color: #6b7280; font-size: 14px; }
 .empty-hint { margin: 0; color: #6b7280; line-height: 1.7; }

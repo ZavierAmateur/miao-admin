@@ -27,7 +27,14 @@ describe('adminLeaderboards', () => {
     }), { status: 200, headers: { 'content-type': 'application/json' } }))
     vi.stubGlobal('fetch', fetchMock)
 
-    await expect(listLevelLeaderboard(2)).resolves.toEqual(responseData)
-    expect(fetchMock.mock.calls[0]?.[0]).toBe('/admin/v1/leaderboards/level?page=2')
+    await expect(listLevelLeaderboard({
+      page: 2,
+      nickName: '旅行猫',
+      platform: 'wechat',
+      playerId: 'player-21',
+    })).resolves.toEqual(responseData)
+    expect(fetchMock.mock.calls[0]?.[0]).toBe(
+      '/admin/v1/leaderboards/level?page=2&nickName=%E6%97%85%E8%A1%8C%E7%8C%AB&platform=wechat&playerId=player-21',
+    )
   })
 })

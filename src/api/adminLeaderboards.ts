@@ -19,6 +19,18 @@ export interface LevelLeaderboardPage {
   readonly hasMore: boolean
 }
 
-export function listLevelLeaderboard(page = 1): Promise<LevelLeaderboardPage> {
-  return apiRequest(`/admin/v1/leaderboards/level?page=${encodeURIComponent(String(page))}`)
+export interface LevelLeaderboardQuery {
+  readonly page?: number
+  readonly nickName?: string
+  readonly platform?: PlayerPlatform
+  readonly playerId?: string
+}
+
+export function listLevelLeaderboard(query: LevelLeaderboardQuery = {}): Promise<LevelLeaderboardPage> {
+  const params = new URLSearchParams()
+  params.set('page', String(query.page ?? 1))
+  if (query.nickName) params.set('nickName', query.nickName)
+  if (query.platform) params.set('platform', query.platform)
+  if (query.playerId) params.set('playerId', query.playerId)
+  return apiRequest(`/admin/v1/leaderboards/level?${params.toString()}`)
 }
