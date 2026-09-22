@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { BellFilled, WarningFilled, User, UserFilled } from '@element-plus/icons-vue'
+import { BellFilled, TrophyBase, WarningFilled, User, UserFilled } from '@element-plus/icons-vue'
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { runtimeConfig } from '../config/runtime'
@@ -30,6 +30,7 @@ async function logout(): Promise<void> {
       </div>
       <el-menu router :default-active="route.path" class="side-menu">
         <el-menu-item index="/players"><el-icon><UserFilled /></el-icon><span>用户管理</span></el-menu-item>
+        <el-menu-item v-if="auth.hasPermission('player:read')" index="/leaderboards"><el-icon><TrophyBase /></el-icon><span>排行榜</span></el-menu-item>
         <el-menu-item v-if="auth.hasPermission('config:read')" index="/announcements"><el-icon><BellFilled /></el-icon><span>公告管理</span></el-menu-item>
         <el-menu-item v-if="auth.hasPermission('error:read')" index="/errors"><el-icon><WarningFilled /></el-icon><span>错误日志</span></el-menu-item>
       </el-menu>

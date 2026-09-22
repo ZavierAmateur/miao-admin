@@ -38,6 +38,12 @@ const router = createRouter({
           meta: { title: '云存档诊断', permission: 'save:read' },
         },
         {
+          path: 'leaderboards',
+          name: 'leaderboards',
+          component: () => import('../views/LeaderboardsView.vue'),
+          meta: { title: '排行榜', permission: 'player:read' },
+        },
+        {
           path: 'errors',
           name: 'errors',
           component: () => import('../views/ErrorLogsView.vue'),
